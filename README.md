@@ -31,7 +31,7 @@
 
 ### Instalar Docker Desktop para Windows
 
-- Descarga Docker Desktop desde la página oficial de Docker e instala el programa.
+- Descarga Docker Desktop desde la [página oficial de Docker](https://www.docker.com/products/docker-desktop/) e instala el programa.
 - Asegúrate de seleccionar la opción para usar Docker con WSL 2 durante la instalación.
 
 ## Instalación de Docker en Linux
