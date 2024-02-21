@@ -3,13 +3,15 @@ $host = 'mysql';
 $user = 'exampleuser';
 $password = 'examplepass';
 $db = 'exampledb';
-$conn = new mysqli($host, $user, $password, $db);
+$dsn = "mysql:host=$host;dbname=$db;charset=utf8mb4";
 
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+try {
+    $conn = new PDO($dsn, $user, $password);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    echo "Connected successfully to MySQL database<br>";
+} catch (PDOException $e) {
+    die("Connection failed: " . $e->getMessage());
 }
-
-echo "Connected successfully to MySQL database<br>";
 
 function isValidJson($jsonStr)
 {
@@ -24,23 +26,23 @@ function uploadJsonToDB($conn, $jsonData)
         return false;
     }
 
-    $stmt = $conn->prepare("INSERT INTO json_data (data) VALUES (?)");
-    $stmt->bind_param("s", $jsonData);
-    if ($stmt->execute()) {
+    try {
+        $stmt = $conn->prepare("INSERT INTO json_data (data) VALUES (?)");
+        $stmt->execute([$jsonData]);
         echo "JSON data uploaded successfully<br>";
-    } else {
-        echo "Error uploading JSON data<br>";
+    } catch (PDOException $e) {
+        echo "Error uploading JSON data: " . $e->getMessage() . "<br>";
     }
-    $stmt->close();
 }
 
 function getAllJsonFromDB($conn)
 {
     $sql = "SELECT data FROM json_data";
-    $result = $conn->query($sql);
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
     $allData = [];
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
+    if ($stmt->rowCount() > 0) {
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $allData[] = json_decode($row["data"], true);
         }
         echo "<pre id='jsonDisplay'>" . json_encode($allData, JSON_PRETTY_PRINT) . "</pre>";
@@ -57,8 +59,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         getAllJsonFromDB($conn);
     }
 }
-
-$conn->close();
 ?>
 
 <!DOCTYPE html>
